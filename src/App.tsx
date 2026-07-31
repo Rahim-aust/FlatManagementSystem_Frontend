@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './layouts/AppLayout'
 import { LoginPage } from './features/auth/LoginPage'
+import { ChangePasswordPage } from './features/auth/ChangePasswordPage'
 import { AdminDashboardPage } from './features/dashboard/AdminDashboardPage'
 import { TenantDashboardPage } from './features/dashboard/TenantDashboardPage'
 import { ManageFlatsPage } from './features/flats/ManageFlatsPage'
@@ -54,6 +55,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Admin']}>
                 <ReportsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/change-password"
+            element={
+              <ProtectedRoute allowedRoles={['Admin']}>
+                <ChangePasswordPage />
               </ProtectedRoute>
             }
           />

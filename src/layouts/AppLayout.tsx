@@ -12,7 +12,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
-import { Building2, ClipboardList, FileText, Home, LogOut, Menu, Receipt, Users } from 'lucide-react'
+import { Building2, ClipboardList, FileText, Home, KeyRound, LogOut, Menu, Receipt, Users } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { authStore } from '../store/authStore'
@@ -25,6 +25,7 @@ const adminItems = [
   { label: 'Tenants', path: '/admin/tenants', icon: Users },
   { label: 'Generate Bill', path: '/admin/bills/generate', icon: Receipt },
   { label: 'Reports', path: '/admin/reports', icon: FileText },
+  { label: 'Change Password', path: '/admin/change-password', icon: KeyRound },
 ]
 
 const tenantItems = [
@@ -37,7 +38,9 @@ export function AppLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const user = authStore.getUser()
-  const items = user?.roles.includes('Tenant') ? tenantItems : adminItems
+  const isTenant = user?.roles.includes('Tenant')
+  const items = isTenant ? tenantItems : adminItems
+  const portalTitle = isTenant ? 'Tenant Portal' : 'Admin Panel'
 
   const handleLogout = () => {
     authStore.clear()
@@ -49,6 +52,9 @@ export function AppLayout() {
       <Box sx={{ px: 3, py: 2.5 }}>
         <Typography variant="h6">Flat Manager</Typography>
         <Typography variant="body2" color="text.secondary">
+          {portalTitle}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
           {user?.fullName ?? user?.userName}
         </Typography>
       </Box>
@@ -100,7 +106,7 @@ export function AppLayout() {
           <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ display: { md: 'none' }, mr: 1 }}>
             <Menu size={22} />
           </IconButton>
-          <Typography variant="h6">Apartment Operations</Typography>
+          <Typography variant="h6">{portalTitle}</Typography>
         </Toolbar>
       </AppBar>
       <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>

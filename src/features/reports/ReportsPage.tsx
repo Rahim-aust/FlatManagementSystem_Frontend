@@ -59,7 +59,15 @@ export function ReportsPage() {
         title="Reports"
         subtitle="Filter pending, paid, and overdue bills."
         action={
-          <Button variant="outlined" startIcon={<Download size={18} />} onClick={() => void reportService.downloadBillReportPdf(status)}>
+          <Button
+            variant="outlined"
+            startIcon={<Download size={18} />}
+            onClick={() =>
+              void reportService
+                .downloadBillReportPdf(status)
+                .catch((downloadError: unknown) => setError(getUnknownErrorMessage(downloadError)))
+            }
+          >
             Download PDF
           </Button>
         }
@@ -130,7 +138,15 @@ export function ReportsPage() {
                     </TextField>
                   </TableCell>
                   <TableCell>
-                    <Button size="small" startIcon={<Download size={16} />} onClick={() => void reportService.downloadBillPdf(bill.billId)}>
+                    <Button
+                      size="small"
+                      startIcon={<Download size={16} />}
+                      onClick={() =>
+                        void reportService
+                          .downloadBillPdf(bill.billId)
+                          .catch((downloadError: unknown) => setError(getUnknownErrorMessage(downloadError)))
+                      }
+                    >
                       PDF
                     </Button>
                   </TableCell>

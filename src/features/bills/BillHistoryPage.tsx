@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Paper,
   Stack,
@@ -11,12 +12,15 @@ import {
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { Download } from 'lucide-react'
+import { useState } from 'react'
 import { PageHeader } from '../../components/PageHeader'
 import { StatusChip } from '../../components/StatusChip'
 import { billService } from '../../services/billService'
 import { reportService } from '../../services/reportService'
+import { getUnknownErrorMessage } from '../../utils/apiError'
 
 export function BillHistoryPage() {
+  const [error, setError] = useState<string | null>(null)
   const billsQuery = useQuery({
     queryKey: ['my-bills'],
     queryFn: billService.getMyBills,
@@ -28,6 +32,12 @@ export function BillHistoryPage() {
     <>
       <PageHeader title="Bill History" subtitle="Review previous bills and payment status." />
       <Stack spacing={2}>
+        {error ? (
+          <Alert severity="error" onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        ) : null}
+
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -51,7 +61,15 @@ export function BillHistoryPage() {
                     <StatusChip status={bill.status} />
                   </TableCell>
                   <TableCell>
-                    <Button size="small" startIcon={<Download size={16} />} onClick={() => void reportService.downloadBillPdf(bill.billId)}>
+                    <Button
+                      size="small"
+                      startIcon={<Download size={16} />}
+                      onClick={() =>
+                        void reportService
+                          .downloadBillPdf(bill.billId)
+                          .catch((downloadError: unknown) => setError(getUnknownErrorMessage(downloadError)))
+                      }
+                    >
                       PDF
                     </Button>
                   </TableCell>

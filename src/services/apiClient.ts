@@ -32,6 +32,8 @@ apiClient.interceptors.response.use(
       !isLoginRequest &&
       !isRefreshRequest
     ) {
+      // For protected API calls, try one refresh-token rotation before failing.
+      // Login/refresh endpoints are excluded to avoid retry loops.
       originalRequest._retry = true
       try {
         const response = await axios.post<ApiResponse<AuthResponse>>(
@@ -47,6 +49,16 @@ apiClient.interceptors.response.use(
       } catch {
         authStore.clear()
       }
+    }
+
+    if (error.response?.status === 401 && !isLoginRequest && !isRefreshRequest) {
+      // If refresh failed or no refresh token exists, the local session is stale.
+      // Clear it and return the user to login instead of leaving a broken dashboard open.
+      authStore.clear()
+      if (window.location.pathname !== '/login') {
+        window.location.assign('/login')
+      }
+      return Promise.reject(error)
     }
 
     if (error.response?.data) {
