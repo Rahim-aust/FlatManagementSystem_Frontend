@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { authService } from '../../services/authService'
 import { authStore } from '../../store/authStore'
 import { getApiErrorMessage, getUnknownErrorMessage } from '../../utils/apiError'
+import { PasswordTextField } from '../../components/PasswordTextField'
 
 const loginSchema = z.object({
   usernameOrEmail: z.string().min(1, 'Username or email is required'),
@@ -44,7 +45,14 @@ export function LoginPage() {
     }
 
     authStore.setAuth(response.data)
-    const path = response.data.user.roles.includes('Tenant') ? '/tenant/dashboard' : '/admin/dashboard'
+    const isTenant = response.data.user.roles.includes('Tenant')
+    const path = response.data.user.mustChangePassword
+      ? isTenant
+        ? '/tenant/change-password'
+        : '/admin/change-password'
+      : isTenant
+        ? '/tenant/dashboard'
+        : '/admin/dashboard'
     navigate(path, { replace: true })
   })
 
@@ -78,10 +86,9 @@ export function LoginPage() {
                 name="password"
                 control={control}
                 render={({ field, fieldState }) => (
-                  <TextField
+                  <PasswordTextField
                     {...field}
                     label="Password"
-                    type="password"
                     error={Boolean(fieldState.error)}
                     helperText={fieldState.error?.message}
                     autoComplete="current-password"

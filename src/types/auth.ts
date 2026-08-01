@@ -6,6 +6,7 @@ export type UserSummary = {
   email: string
   fullName?: string | null
   roles: UserRole[]
+  mustChangePassword: boolean
 }
 
 export type AuthResponse = {

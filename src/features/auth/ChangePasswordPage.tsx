@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Alert, Button, Card, CardContent, Stack, TextField } from '@mui/material'
+import { Alert, Button, Card, CardContent, Stack } from '@mui/material'
 import { KeyRound } from 'lucide-react'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { PageHeader } from '../../components/PageHeader'
+import { PasswordTextField } from '../../components/PasswordTextField'
 import { authService } from '../../services/authService'
 import { authStore } from '../../store/authStore'
 import { getApiErrorMessage, getUnknownErrorMessage } from '../../utils/apiError'
@@ -31,6 +32,12 @@ export function ChangePasswordPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
   const navigate = useNavigate()
+  const user = authStore.getUser()
+  const isTenant = user?.roles.includes('Tenant')
+  const title = isTenant ? 'Change Temporary Password' : 'Change Password'
+  const subtitle = user?.mustChangePassword
+    ? 'Please change your temporary password before using the system.'
+    : 'Update your account password.'
   const { control, handleSubmit, formState } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: {
@@ -68,7 +75,7 @@ export function ChangePasswordPage() {
 
   return (
     <Stack spacing={3}>
-      <PageHeader title="Change Password" subtitle="Replace the temporary admin password before production use." />
+      <PageHeader title={title} subtitle={subtitle} />
       <Card sx={{ maxWidth: 560 }}>
         <CardContent>
           <Stack component="form" spacing={2.5} onSubmit={onSubmit}>
@@ -77,10 +84,9 @@ export function ChangePasswordPage() {
               name="currentPassword"
               control={control}
               render={({ field, fieldState }) => (
-                <TextField
+                <PasswordTextField
                   {...field}
                   label="Current password"
-                  type="password"
                   autoComplete="current-password"
                   error={Boolean(fieldState.error)}
                   helperText={fieldState.error?.message}
@@ -92,10 +98,9 @@ export function ChangePasswordPage() {
               name="newPassword"
               control={control}
               render={({ field, fieldState }) => (
-                <TextField
+                <PasswordTextField
                   {...field}
                   label="New password"
-                  type="password"
                   autoComplete="new-password"
                   error={Boolean(fieldState.error)}
                   helperText={fieldState.error?.message ?? 'Example: Strong@123'}
@@ -107,10 +112,9 @@ export function ChangePasswordPage() {
               name="confirmNewPassword"
               control={control}
               render={({ field, fieldState }) => (
-                <TextField
+                <PasswordTextField
                   {...field}
                   label="Confirm new password"
-                  type="password"
                   autoComplete="new-password"
                   error={Boolean(fieldState.error)}
                   helperText={fieldState.error?.message}

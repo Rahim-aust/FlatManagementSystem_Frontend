@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material'
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { PasswordTextField } from '../../../components/PasswordTextField'
 import type { ResetTenantPasswordPayload, Tenant } from '../../../types/tenants'
 
 const passwordRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
@@ -60,16 +61,15 @@ export function ResetPasswordDialog({
           {error ? <Alert severity="error">{error}</Alert> : null}
           {success ? <Alert severity="success">{success}</Alert> : null}
           <Alert severity="info">
-            Set a temporary password for {tenant?.name ?? 'this tenant'}. Share it securely and ask the tenant to change it after login.
+            Set a temporary password for {tenant?.name ?? 'this tenant'}. The system will email it to the tenant and force password change after login.
           </Alert>
           <Controller
             name="newPassword"
             control={control}
             render={({ field, fieldState }) => (
-              <TextField
+              <PasswordTextField
                 {...field}
                 label="New temporary password"
-                type="password"
                 error={Boolean(fieldState.error)}
                 helperText={fieldState.error?.message ?? 'Example: Tenant@123'}
                 fullWidth
@@ -80,10 +80,9 @@ export function ResetPasswordDialog({
             name="confirmNewPassword"
             control={control}
             render={({ field, fieldState }) => (
-              <TextField
+              <PasswordTextField
                 {...field}
                 label="Confirm password"
-                type="password"
                 error={Boolean(fieldState.error)}
                 helperText={fieldState.error?.message}
                 fullWidth

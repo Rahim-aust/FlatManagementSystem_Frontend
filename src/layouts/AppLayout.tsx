@@ -15,6 +15,7 @@ import {
 import { Building2, ClipboardList, FileText, Home, KeyRound, LogOut, Menu, Receipt, Users } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { NotificationBell } from '../components/NotificationBell'
 import { authStore } from '../store/authStore'
 
 const drawerWidth = 264
@@ -31,6 +32,7 @@ const adminItems = [
 const tenantItems = [
   { label: 'Dashboard', path: '/tenant/dashboard', icon: Home },
   { label: 'Bill History', path: '/tenant/bills', icon: ClipboardList },
+  { label: 'Change Password', path: '/tenant/change-password', icon: KeyRound },
 ]
 
 export function AppLayout() {
@@ -110,6 +112,8 @@ export function AppLayout() {
           <Typography variant="h6" noWrap sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             {portalTitle}
           </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <NotificationBell />
         </Toolbar>
       </AppBar>
       <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>

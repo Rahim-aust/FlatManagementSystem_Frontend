@@ -15,7 +15,9 @@ function readStoredAuth(): StoredAuth | null {
   }
 
   try {
-    return JSON.parse(raw) as StoredAuth
+    const parsed = JSON.parse(raw) as StoredAuth
+    parsed.user.mustChangePassword ??= false
+    return parsed
   } catch {
     localStorage.removeItem(storageKey)
     return null
@@ -48,7 +50,10 @@ export const authStore = {
     currentAuth = {
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
-      user: response.user,
+      user: {
+        ...response.user,
+        mustChangePassword: response.user.mustChangePassword ?? false,
+      },
     }
     localStorage.setItem(storageKey, JSON.stringify(currentAuth))
   },

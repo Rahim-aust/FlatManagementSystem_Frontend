@@ -82,6 +82,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/tenant/change-password"
+            element={
+              <ProtectedRoute allowedRoles={['Tenant']}>
+                <ChangePasswordPage />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

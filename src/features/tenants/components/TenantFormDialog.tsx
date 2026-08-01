@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { PasswordTextField } from '../../../components/PasswordTextField'
 import type { Tenant, TenantPayload } from '../../../types/tenants'
 
 const tenantSchema = z.object({
@@ -36,7 +37,7 @@ export function TenantFormDialog({ open, tenant, loading = false, error = null, 
   const { control, handleSubmit, reset } = useForm<TenantFormValues>({
     resolver: zodResolver(
       tenantSchema.superRefine((value, ctx) => {
-        if (!tenant && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(value.password ?? '')) {
+        if (!tenant && value.password && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(value.password)) {
           ctx.addIssue({
             code: 'custom',
             path: ['password'],
@@ -103,12 +104,11 @@ export function TenantFormDialog({ open, tenant, loading = false, error = null, 
                 name="password"
                 control={control}
                 render={({ field, fieldState }) => (
-                  <TextField
+                  <PasswordTextField
                     {...field}
-                    label="Password"
-                    type="password"
+                    label="Password (optional)"
                     error={Boolean(fieldState.error)}
-                    helperText={fieldState.error?.message ?? 'Example: Tenant@123'}
+                    helperText={fieldState.error?.message ?? 'Leave blank to auto-generate and email credentials.'}
                     fullWidth
                   />
                 )}

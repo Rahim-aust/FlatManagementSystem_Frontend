@@ -14,7 +14,7 @@ export const tenantService = {
     const response = await apiClient.get<ApiResponse<PagedResult<Tenant>>>('/tenants', { params })
     return response.data
   },
-  async createTenant(payload: Required<Pick<TenantPayload, 'password'>> & TenantPayload) {
+  async createTenant(payload: TenantPayload) {
     const response = await apiClient.post<ApiResponse<Tenant>>('/tenants', payload)
     return response.data
   },

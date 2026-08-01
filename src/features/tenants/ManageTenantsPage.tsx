@@ -153,7 +153,7 @@ export function ManageTenantsPage() {
       return
     }
 
-    createMutation.mutate(payload as Required<Pick<TenantPayload, 'password'>> & TenantPayload)
+    createMutation.mutate(payload)
   }
 
   return (
