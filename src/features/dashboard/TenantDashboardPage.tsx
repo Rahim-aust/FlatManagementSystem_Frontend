@@ -13,17 +13,20 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
-import { useQuery } from '@tanstack/react-query'
-import { Download } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Download, HandCoins } from 'lucide-react'
 import { useState } from 'react'
 import { StatusChip } from '../../components/StatusChip'
 import { PageHeader } from '../../components/PageHeader'
 import { dashboardService } from '../../services/dashboardService'
+import { billService } from '../../services/billService'
 import { reportService } from '../../services/reportService'
 import { getUnknownErrorMessage } from '../../utils/apiError'
 
 export function TenantDashboardPage() {
   const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const queryClient = useQueryClient()
   const dashboardQuery = useQuery({
     queryKey: ['dashboard', 'tenant'],
     queryFn: dashboardService.getTenantDashboard,
@@ -38,6 +41,24 @@ export function TenantDashboardPage() {
       .catch((downloadError: unknown) => setError(getUnknownErrorMessage(downloadError)))
   }
 
+  const requestPaymentMutation = useMutation({
+    mutationFn: (billId: number) => billService.requestPayment(billId),
+    onSuccess: async (response) => {
+      if (!response.success) {
+        setError(response.message || 'Payment request failed.')
+        return
+      }
+
+      setError(null)
+      setMessage(response.message || 'Payment request submitted.')
+      await queryClient.invalidateQueries({ queryKey: ['dashboard', 'tenant'] })
+    },
+    onError: (requestError) => setError(getUnknownErrorMessage(requestError)),
+  })
+
+  const canRequestPayment = (bill: typeof currentBill) =>
+    Boolean(bill && bill.status !== 'Paid' && bill.paymentRequestStatus !== 'Requested')
+
   return (
     <Stack spacing={3}>
       <PageHeader title="Tenant Dashboard" subtitle="View your current bill and payment history." />
@@ -46,14 +67,25 @@ export function TenantDashboardPage() {
           {error}
         </Alert>
       ) : null}
+      {message ? (
+        <Alert severity="success" onClose={() => setMessage(null)}>
+          {message}
+        </Alert>
+      ) : null}
       <Card>
         <CardContent>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between' }}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            sx={{ alignItems: { xs: 'stretch', md: 'center' }, justifyContent: 'space-between' }}
+          >
             <Stack spacing={1}>
               <Typography variant="body2" color="text.secondary">
                 Current bill {dashboard?.flatNumber ? `for ${dashboard.flatNumber}` : ''}
               </Typography>
-              <Typography variant="h4">৳{(currentBill?.totalBill ?? 0).toLocaleString()}</Typography>
+              <Typography variant="h4" sx={{ fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
+                ৳{(currentBill?.totalBill ?? 0).toLocaleString()}
+              </Typography>
               {currentBill ? <StatusChip status={currentBill.status} /> : null}
               <Typography color="text.secondary">
                 {currentBill ? `Due ${currentBill.dueDate}` : 'No bill has been generated yet.'}
@@ -68,8 +100,22 @@ export function TenantDashboardPage() {
                   handleDownload(currentBill.billId)
                 }
               }}
+              sx={{ width: { xs: '100%', md: 'auto' } }}
             >
               Download PDF
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<HandCoins size={18} />}
+              disabled={!canRequestPayment(currentBill) || requestPaymentMutation.isPending}
+              onClick={() => {
+                if (currentBill) {
+                  requestPaymentMutation.mutate(currentBill.billId)
+                }
+              }}
+              sx={{ width: { xs: '100%', md: 'auto' } }}
+            >
+              Request Paid
             </Button>
           </Stack>
         </CardContent>
@@ -85,8 +131,8 @@ export function TenantDashboardPage() {
               </Typography>
             </Stack>
 
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
+            <TableContainer component={Paper} variant="outlined" sx={{ width: '100%', overflowX: 'auto' }}>
+              <Table size="small" sx={{ minWidth: 1400 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Month</TableCell>
@@ -102,6 +148,8 @@ export function TenantDashboardPage() {
                     <TableCell align="right">Total</TableCell>
                     <TableCell>Due</TableCell>
                     <TableCell>Status</TableCell>
+                    <TableCell>Payment Request</TableCell>
+                    <TableCell>Request Paid</TableCell>
                     <TableCell>PDF</TableCell>
                   </TableRow>
                 </TableHead>
@@ -123,6 +171,17 @@ export function TenantDashboardPage() {
                       <TableCell>
                         <StatusChip status={bill.status} />
                       </TableCell>
+                      <TableCell>{bill.paymentRequestStatus}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="small"
+                          startIcon={<HandCoins size={16} />}
+                          disabled={!canRequestPayment(bill) || requestPaymentMutation.isPending}
+                          onClick={() => requestPaymentMutation.mutate(bill.billId)}
+                        >
+                          Request
+                        </Button>
+                      </TableCell>
                       <TableCell>
                         <Button size="small" startIcon={<Download size={16} />} onClick={() => handleDownload(bill.billId)}>
                           PDF
@@ -132,7 +191,7 @@ export function TenantDashboardPage() {
                   ))}
                   {!dashboardQuery.isLoading && recentBills.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={14}>No bill details found.</TableCell>
+                      <TableCell colSpan={16}>No bill details found.</TableCell>
                     </TableRow>
                   ) : null}
                 </TableBody>

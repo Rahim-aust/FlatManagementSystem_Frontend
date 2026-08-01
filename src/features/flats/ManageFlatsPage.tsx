@@ -153,8 +153,8 @@ export function ManageFlatsPage() {
           />
         </Paper>
 
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer component={Paper} sx={{ width: '100%', overflowX: 'auto' }}>
+          <Table sx={{ minWidth: 820 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Flat</TableCell>
@@ -181,7 +181,7 @@ export function ManageFlatsPage() {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                     <Tooltip title="Edit flat">
                       <IconButton
                         onClick={() => {

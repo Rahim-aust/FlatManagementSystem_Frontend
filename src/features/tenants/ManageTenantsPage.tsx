@@ -17,14 +17,15 @@ import {
   Tooltip,
 } from '@mui/material'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Edit, Home, Search, Trash2, UserPlus } from 'lucide-react'
+import { Edit, Home, KeyRound, Search, Trash2, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { PageHeader } from '../../components/PageHeader'
 import { tenantService } from '../../services/tenantService'
-import type { Tenant, TenantPayload } from '../../types/tenants'
+import type { ResetTenantPasswordPayload, Tenant, TenantPayload } from '../../types/tenants'
 import { getApiErrorMessage, getUnknownErrorMessage } from '../../utils/apiError'
 import { AssignFlatDialog } from './components/AssignFlatDialog'
+import { ResetPasswordDialog } from './components/ResetPasswordDialog'
 import { TenantFormDialog } from './components/TenantFormDialog'
 
 export function ManageTenantsPage() {
@@ -34,10 +35,14 @@ export function ManageTenantsPage() {
   const [pageSize, setPageSize] = useState(10)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false)
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null)
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null)
   const [deletingTenant, setDeletingTenant] = useState<Tenant | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [tenantDialogError, setTenantDialogError] = useState<string | null>(null)
+  const [resetPasswordError, setResetPasswordError] = useState<string | null>(null)
+  const [resetPasswordSuccess, setResetPasswordSuccess] = useState<string | null>(null)
 
   const tenantsQuery = useQuery({
     queryKey: ['tenants', search, page, pageSize],
@@ -52,14 +57,15 @@ export function ManageTenantsPage() {
     mutationFn: tenantService.createTenant,
     onSuccess: async (response) => {
       if (!response.success) {
-        setError(getApiErrorMessage(response))
+        setTenantDialogError(getApiErrorMessage(response))
         return
       }
 
+      setTenantDialogError(null)
       setDialogOpen(false)
       await invalidateTenants()
     },
-    onError: (mutationError) => setError(getUnknownErrorMessage(mutationError)),
+    onError: (mutationError) => setTenantDialogError(getUnknownErrorMessage(mutationError)),
   })
 
   const updateMutation = useMutation({
@@ -67,15 +73,16 @@ export function ManageTenantsPage() {
       tenantService.updateTenant(tenantId, payload),
     onSuccess: async (response) => {
       if (!response.success) {
-        setError(getApiErrorMessage(response))
+        setTenantDialogError(getApiErrorMessage(response))
         return
       }
 
+      setTenantDialogError(null)
       setDialogOpen(false)
       setEditingTenant(null)
       await invalidateTenants()
     },
-    onError: (mutationError) => setError(getUnknownErrorMessage(mutationError)),
+    onError: (mutationError) => setTenantDialogError(getUnknownErrorMessage(mutationError)),
   })
 
   const assignMutation = useMutation({
@@ -108,12 +115,31 @@ export function ManageTenantsPage() {
     onError: (mutationError) => setError(getUnknownErrorMessage(mutationError)),
   })
 
+  const resetPasswordMutation = useMutation({
+    mutationFn: ({ tenantId, payload }: { tenantId: number; payload: ResetTenantPasswordPayload }) =>
+      tenantService.resetPassword(tenantId, payload),
+    onSuccess: (response) => {
+      if (!response.success) {
+        setResetPasswordError(getApiErrorMessage(response))
+        setResetPasswordSuccess(null)
+        return
+      }
+
+      setResetPasswordError(null)
+      setResetPasswordSuccess(response.message || 'Tenant password reset.')
+    },
+    onError: (mutationError) => {
+      setResetPasswordError(getUnknownErrorMessage(mutationError))
+      setResetPasswordSuccess(null)
+    },
+  })
+
   const tenants = tenantsQuery.data?.data?.items ?? []
   const totalRecords = tenantsQuery.data?.data?.totalRecords ?? 0
   const isSaving = createMutation.isPending || updateMutation.isPending
 
   const handleSubmit = (payload: TenantPayload) => {
-    setError(null)
+    setTenantDialogError(null)
     if (editingTenant) {
       updateMutation.mutate({
         tenantId: editingTenant.tenantId,
@@ -141,6 +167,7 @@ export function ManageTenantsPage() {
             startIcon={<UserPlus size={18} />}
             onClick={() => {
               setEditingTenant(null)
+              setTenantDialogError(null)
               setDialogOpen(true)
             }}
           >
@@ -175,8 +202,8 @@ export function ManageTenantsPage() {
           />
         </Paper>
 
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer component={Paper} sx={{ width: '100%', overflowX: 'auto' }}>
+          <Table sx={{ minWidth: 1020 }}>
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
@@ -203,7 +230,7 @@ export function ManageTenantsPage() {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                     <Tooltip title="Assign flat">
                       <IconButton
                         onClick={() => {
@@ -218,10 +245,23 @@ export function ManageTenantsPage() {
                       <IconButton
                         onClick={() => {
                           setEditingTenant(tenant)
+                          setTenantDialogError(null)
                           setDialogOpen(true)
                         }}
                       >
                         <Edit size={18} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Reset password">
+                      <IconButton
+                        onClick={() => {
+                          setSelectedTenant(tenant)
+                          setResetPasswordError(null)
+                          setResetPasswordSuccess(null)
+                          setResetPasswordDialogOpen(true)
+                        }}
+                      >
+                        <KeyRound size={18} />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Delete tenant">
@@ -266,11 +306,34 @@ export function ManageTenantsPage() {
         open={dialogOpen}
         tenant={editingTenant}
         loading={isSaving}
+        error={tenantDialogError}
         onClose={() => {
           setDialogOpen(false)
           setEditingTenant(null)
+          setTenantDialogError(null)
         }}
         onSubmit={handleSubmit}
+      />
+
+      <ResetPasswordDialog
+        open={resetPasswordDialogOpen}
+        tenant={selectedTenant}
+        loading={resetPasswordMutation.isPending}
+        error={resetPasswordError}
+        success={resetPasswordSuccess}
+        onClose={() => {
+          setResetPasswordDialogOpen(false)
+          setSelectedTenant(null)
+          setResetPasswordError(null)
+          setResetPasswordSuccess(null)
+        }}
+        onSubmit={(payload) => {
+          if (selectedTenant) {
+            setResetPasswordError(null)
+            setResetPasswordSuccess(null)
+            resetPasswordMutation.mutate({ tenantId: selectedTenant.tenantId, payload })
+          }
+        }}
       />
 
       <AssignFlatDialog

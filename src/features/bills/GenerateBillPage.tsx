@@ -185,7 +185,13 @@ export function GenerateBillPage() {
               This flat uses inclusive rent, so utility fields are covered by rent and are not charged separately.
             </Typography>
           ) : null}
-          <Button sx={{ mt: 3 }} variant="contained" startIcon={<Receipt size={18} />} onClick={handleGenerate} disabled={generateMutation.isPending}>
+          <Button
+            sx={{ mt: 3, width: { xs: '100%', sm: 'auto' } }}
+            variant="contained"
+            startIcon={<Receipt size={18} />}
+            onClick={handleGenerate}
+            disabled={generateMutation.isPending}
+          >
             Generate bill
           </Button>
         </CardContent>

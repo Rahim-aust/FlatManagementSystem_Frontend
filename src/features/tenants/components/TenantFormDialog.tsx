@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
@@ -26,11 +27,12 @@ type TenantFormDialogProps = {
   open: boolean
   tenant?: Tenant | null
   loading?: boolean
+  error?: string | null
   onClose: () => void
   onSubmit: (payload: TenantPayload) => void
 }
 
-export function TenantFormDialog({ open, tenant, loading = false, onClose, onSubmit }: TenantFormDialogProps) {
+export function TenantFormDialog({ open, tenant, loading = false, error = null, onClose, onSubmit }: TenantFormDialogProps) {
   const { control, handleSubmit, reset } = useForm<TenantFormValues>({
     resolver: zodResolver(
       tenantSchema.superRefine((value, ctx) => {
@@ -72,6 +74,11 @@ export function TenantFormDialog({ open, tenant, loading = false, onClose, onSub
       <DialogTitle>{tenant ? 'Edit tenant' : 'Add tenant'}</DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ pt: 1 }}>
+          {error ? (
+            <Grid size={{ xs: 12 }}>
+              <Alert severity="error">{error}</Alert>
+            </Grid>
+          ) : null}
           <Grid size={{ xs: 12, sm: 6 }}>
             <Controller
               name="name"

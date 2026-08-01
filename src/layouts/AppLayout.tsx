@@ -70,6 +70,7 @@ export function AppLayout() {
               component={NavLink}
               to={item.path}
               selected={selected}
+              onClick={() => setMobileOpen(false)}
               sx={{ borderRadius: 1, mb: 0.5 }}
             >
               <ListItemIcon sx={{ minWidth: 38 }}>
@@ -90,7 +91,7 @@ export function AppLayout() {
   )
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', width: '100%', overflowX: 'hidden' }}>
       <AppBar
         position="fixed"
         color="inherit"
@@ -106,7 +107,9 @@ export function AppLayout() {
           <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ display: { md: 'none' }, mr: 1 }}>
             <Menu size={22} />
           </IconButton>
-          <Typography variant="h6">{portalTitle}</Typography>
+          <Typography variant="h6" noWrap sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+            {portalTitle}
+          </Typography>
         </Toolbar>
       </AppBar>
       <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
@@ -133,7 +136,18 @@ export function AppLayout() {
           {drawer}
         </Drawer>
       </Box>
-      <Box component="main" sx={{ flexGrow: 1, px: { xs: 2, md: 3 }, py: 3, mt: 8 }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          minWidth: 0,
+          width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
+          px: { xs: 1.5, sm: 2, md: 3 },
+          py: { xs: 2, md: 3 },
+          mt: { xs: 7, md: 8 },
+          overflowX: 'hidden',
+        }}
+      >
         <Outlet />
       </Box>
     </Box>

@@ -1,4 +1,5 @@
 export type BillStatus = 'Pending' | 'Paid' | 'Overdue'
+export type PaymentRequestStatus = 'None' | 'Requested' | 'Approved' | 'Rejected'
 
 export type Bill = {
   billId: number
@@ -18,6 +19,11 @@ export type Bill = {
   dueDate: string
   status: BillStatus
   billingType: 'Inclusive' | 'Exclusive'
+  paymentRequestStatus: PaymentRequestStatus
+  paymentRequestedAt?: string | null
+  paymentRequestNote?: string | null
+  paymentReviewedAt?: string | null
+  paymentReviewedBy?: string | null
 }
 
 export type BillPreview = {
@@ -40,4 +46,13 @@ export type GenerateBillPayload = {
   otherCharge: number
   discount: number
   dueDate: string
+}
+
+export type RequestBillPaymentPayload = {
+  note?: string
+}
+
+export type ReviewBillPaymentPayload = {
+  decision: 'Approve' | 'Reject'
+  note?: string
 }

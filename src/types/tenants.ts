@@ -23,3 +23,8 @@ export type AssignFlatPayload = {
   tenantId: number
   flatId?: number | null
 }
+
+export type ResetTenantPasswordPayload = {
+  newPassword: string
+  confirmNewPassword: string
+}

@@ -1,7 +1,7 @@
 import { apiClient } from './apiClient'
 import type { ApiResponse } from '../types/auth'
 import type { PagedResult } from '../types/flats'
-import type { AssignFlatPayload, Tenant, TenantPayload } from '../types/tenants'
+import type { AssignFlatPayload, ResetTenantPasswordPayload, Tenant, TenantPayload } from '../types/tenants'
 
 export type TenantListParams = {
   search?: string
@@ -24,6 +24,10 @@ export const tenantService = {
   },
   async assignFlat(payload: AssignFlatPayload) {
     const response = await apiClient.post<ApiResponse<Tenant>>('/tenants/assign-flat', payload)
+    return response.data
+  },
+  async resetPassword(tenantId: number, payload: ResetTenantPasswordPayload) {
+    const response = await apiClient.post<ApiResponse<object>>(`/tenants/${tenantId}/reset-password`, payload)
     return response.data
   },
   async deleteTenant(tenantId: number) {
